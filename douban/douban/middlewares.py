@@ -2,16 +2,19 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import time
+
 import scrapy
 from scrapy import signals
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 
-
+from scrapy.http import HtmlResponse
 
 import requests
 from fake_useragent import UserAgent
+from selenium import webdriver
 
 
 class RandomUserAgentMiddleware:
@@ -63,6 +66,34 @@ class RandomProxyMiddleware:
         except Exception as e:
             print(e)
             return  None
+
+#  使用selenium 进行动态渲染
+
+class SeleniumMiddleware:
+
+
+    def process_request(self,request,spider):
+
+
+        url = request.url
+        #  当某个url 需要动态加载的时候就是用的selenium
+        if 'daydata' in url:
+            driver = webdriver.Chrome()
+            driver.get( url)
+            time.sleep(3)
+            data = driver.page_source
+            driver.close()
+#              创建响应式对象
+            res = HtmlResponse(url=url,body=data,encoding='utf-8',request=request)
+            return  res
+
+
+
+
+
+
+
+
 
 # if __name__ == '__main__':
 #     proxy = RandomProxyMiddleware()
